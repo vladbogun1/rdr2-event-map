@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>RDR2 Event Map — Admin</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .side{display:block}
+    .adminBar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .adminActions{display:flex;gap:8px;flex-wrap:wrap}
+    .panel{padding:12px}
+    .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .field label{font-weight:800;font-size:12px;opacity:.9}
+    .field input,.field textarea,.field select{
+      padding:10px 10px;border-radius:12px;border:1px solid rgba(0,0,0,.16);
+      background: rgba(255,255,255,.65); outline:none;
+    }
+    .field textarea{min-height:70px;resize:vertical}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .hint{font-size:12px;opacity:.85;line-height:1.35}
+    .danger{color:#a11a1a;font-weight:800}
+    .small{font-size:12px;opacity:.8}
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: rgba(0,0,0,.06); border:1px solid rgba(0,0,0,.10); padding:2px 6px; border-radius:8px}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="adminBar">
+        <div class="brand">
+          <div class="brand__title">⚙️ Admin — RDR2 Event Map</div>
+          <a class="btn" href="./index.html">← Назад к карте</a>
+
+        </div>
+        <div class="adminActions">
+          <button class="btn" id="btnExport">⬇️ Export markers.json</button>
+          <button class="btn" id="btnCopy">📋 Copy JSON</button>
+          <label class="btn" style="display:inline-flex;align-items:center;gap:8px">
+            ⬆️ Import
+            <input id="fileImport" type="file" accept="application/json" style="display:none">
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div id="map"></div>
+
+      <aside class="side">
+        <div class="side__head">
+          <h2>Редактор меток</h2>
+          <span class="badge" id="count">0</span>
+        </div>
+
+        <div class="panel">
+          <div class="hint">
+            Клик по карте — добавить метку. Перетяни метку — изменить позицию.
+            <br/>На GitHub Pages <b>нельзя</b> сохранить файл на сервер — поэтому после правок нажми <span class="kbd">Export</span> и замени <span class="kbd">markers.json</span> в репозитории.
+          </div>
+
+          <div class="field">
+            <label>Выбранная метка</label>
+            <div class="row">
+              <button class="btn btn--ghost" id="btnNew">➕ Новая</button>
+              <button class="btn btn--ghost" id="btnDelete"><span class="danger">🗑️ Удалить</span></button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Название</label>
+            <input id="mName" type="text" placeholder="Напр. Ёлка у реки" />
+          </div>
+
+          <div class="row">
+            <div class="field" style="flex:1;min-width:140px">
+              <label>Тип</label>
+              <select id="mType">
+                <option value="tree">🌲 tree</option>
+                <option value="rare">⭐ rare</option>
+                <option value="done">✅ done</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1;min-width:140px">
+              <label>ID</label>
+              <input id="mId" type="text" disabled />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Заметка</label>
+            <textarea id="mNote" placeholder="Подсказка: ориентиры, дорога, берег и т.д."></textarea>
+          </div>
+
+          <div class="row">
+            <div class="field" style="flex:1;min-width:140px">
+              <label>X (px)</label>
+              <input id="mX" type="number" disabled />
+            </div>
+            <div class="field" style="flex:1;min-width:140px">
+              <label>Y (px)</label>
+              <input id="mY" type="number" disabled />
+            </div>
+          </div>
+
+          <div class="small muted">
+            Подсказка: можно открыть карту в 2 вкладках: одна — для просмотра, другая — для редактирования.
+          </div>
+        </div>
+
+        <div class="list" id="list"></div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    window.MAP_CONFIG = {"W": 2048, "H": 1593, "MAX_ZOOM": 3, "TILE": 256};
+  </script>
+  <script src="./admin.js"></script>
+</body>
+</html>
