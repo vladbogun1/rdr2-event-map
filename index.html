@@ -1,50 +1,28 @@
 <!doctype html>
-<html lang="ru">
+<html lang="uk">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>RDR2 Event Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RDR2 Мапа події — ялинки</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="./theme.css">
 </head>
-<body>
-  <div id="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand__title">🌲 RDR2 Event Map</div>
+<body class="page">
+<header>
+    <div class="header-row">
+        <div class="title">🪵 RDR2 Мапа події — ялинки</div>
+        <div class="created">Created By: <a href="https://github.com/v_lastelin" target="_blank" rel="noopener">@v_lastelin</a></div>
+    </div>
+</header>
 
-        <div class="pill" title="Поиск по названию и заметке">
-          🔎 <input id="search" type="text" placeholder="Поиск…" />
-        </div>
+<div class="map-shell">
+    <div id="map"></div>
+</div>
 
-        <div class="filters">
-          <label class="check"><input type="checkbox" id="f_tree" checked> 🌲 Ёлки</label>
-          <label class="check"><input type="checkbox" id="f_rare" checked> ⭐ Редкие</label>
-          <label class="check"><input type="checkbox" id="f_done" checked> ✅ Проверено</label>
-          <a class="btn" href="./admin.html" title="Редактирование меток (на GitHub Pages сохранение через экспорт)">⚙️ Админ</a>
-        </div>
-      </div>
-    </header>
-
-    <main class="main">
-      <div id="map"></div>
-
-      <aside class="side">
-        <div class="side__head">
-          <h2>Метки</h2>
-          <span class="badge" id="count">0</span>
-        </div>
-        <div class="list" id="list"></div>
-        <div class="footerHint">
-          Совет: открой метку → “Ссылка” — можно шарить конкретную ёлку друзьям.
-        </div>
-      </aside>
-    </main>
-  </div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="./map-settings.js"></script>
-  <script src="./map-zoom.js"></script>
-  <script src="./app.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./map-settings.js"></script>
+<script src="./map-zoom.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>

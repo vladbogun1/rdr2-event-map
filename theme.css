@@ -1,0 +1,110 @@
+:root{
+  --bg:#1a140f;
+  --wood:#2b1d12;
+  --wood2:#3a2616;
+  --paper:#e6d6b8;
+  --accent:#b98945;
+}
+
+*{box-sizing:border-box}
+html, body{height:100%}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--paper);
+  background:
+    radial-gradient(1200px 600px at 30% 10%, #3a2818 0%, transparent 60%),
+    radial-gradient(900px 500px at 80% 30%, #2a1b11 0%, transparent 55%),
+    linear-gradient(180deg, #120d09 0%, #1a140f 100%);
+}
+
+header{
+  padding:14px 18px;
+  border-bottom: 2px solid rgba(185,137,69,.35);
+  background: linear-gradient(180deg, rgba(58,38,22,.9), rgba(43,29,18,.9));
+  position: sticky;
+  top:0;
+  z-index: 10;
+}
+
+.header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+header .title{
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-shadow: 0 2px 0 rgba(0,0,0,.4);
+  white-space:nowrap;
+}
+
+header .created{
+  font-size: 12px;
+  opacity:.95;
+  white-space:nowrap;
+}
+
+header .created a{
+  color: #f2e4c9;
+  text-decoration:none;
+  border-bottom: 1px dashed rgba(185,137,69,.45);
+}
+header .created a:hover{
+  border-bottom-color: rgba(185,137,69,.8);
+}
+
+.page{
+  display:flex;
+  flex-direction:column;
+  min-height:100dvh;
+}
+
+.map-shell{
+  padding: 14px;
+  flex:1;
+  min-height: 0;
+}
+
+#map{
+  width:100%;
+  height:100%;
+  border-radius: 14px;
+  overflow:hidden;
+  border: 1px solid rgba(185,137,69,.22);
+  background: rgba(0,0,0,.15);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* Leaflet controls в “дерев'яному” стилі */
+.leaflet-control-zoom a{
+  background: rgba(43,29,18,.88) !important;
+  color: #f2e4c9 !important;
+  border-color: rgba(185,137,69,.35) !important;
+}
+.leaflet-bar{
+  border-color: rgba(185,137,69,.35) !important;
+  border: none !important;
+  display: flex;
+}
+
+/* Ось тут — індикатор масштабу всередині блока + / - */
+.leaflet-control-zoom-level{
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.1;
+  text-align: center;
+  background: rgba(43,29,18,.88);
+  color: #f2e4c9;
+  border-top: 1px solid rgba(185,137,69,.35);
+  user-select: none;
+}
+
+/* мобілка */
+@media (max-width: 640px){
+  .map-shell{ padding: 10px; }
+  header .created{ display:none; } /* якщо хочеш — прибери */
+}

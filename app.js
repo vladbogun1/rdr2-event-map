@@ -1,3 +1,4 @@
+// app.js
 "use strict";
 
 (async function () {
@@ -7,8 +8,23 @@
   const map = Z.createMap("map");
   Z.addTiles(map);
   Z.fitToMap(map);
+  Z.attachZoomLabel(map); // <- показує z та × біля +/-
 
   const markersLayer = L.layerGroup().addTo(map);
+
+  const markers = await loadMarkers();
+  renderMarkers(markers);
+
+  async function loadMarkers() {
+    try {
+      const res = await fetch(S.markersUrl, { cache: "no-store" });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
 
   function iconFor(type) {
     const html = type === "tree" ? "🌲" : "📍";
@@ -27,29 +43,18 @@
     });
   }
 
-  async function loadMarkers() {
-    try {
-      const res = await fetch(S.markersUrl, { cache: "no-store" });
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function renderMarkers(markers) {
+  function renderMarkers(list) {
     markersLayer.clearLayers();
 
-    for (const m of markers) {
+    for (const m of list) {
       if (typeof m?.x !== "number" || typeof m?.y !== "number") continue;
 
       const ll = Z.xyToLatLng(map, m.x, m.y);
       const marker = L.marker(ll, { icon: iconFor(m.type || "tree") });
 
-      const name = m.name || "Метка";
+      const name = escapeHtml(m.name || "Мітка");
       const note = m.note ? `<div style="margin-top:6px;opacity:.9">${escapeHtml(m.note)}</div>` : "";
-      marker.bindPopup(`<b>${escapeHtml(name)}</b>${note}`);
+      marker.bindPopup(`<b>${name}</b>${note}`);
 
       marker.addTo(markersLayer);
     }
@@ -60,7 +65,4 @@
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
     );
   }
-
-  const markers = await loadMarkers();
-  renderMarkers(markers);
 })();
