@@ -31,6 +31,7 @@ header{
 
 .header-row{
   display:flex;
+  flex-wrap: wrap;
   align-items:center;
   justify-content:space-between;
   gap:12px;
@@ -289,8 +290,22 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   font-variant-numeric: tabular-nums; /* щоб цифри не “стрибали” */
   user-select:none;
 }
+
+.hdr-btn{
+  margin-left: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(185,137,69,.35);
+  background: rgba(0,0,0,.18);
+  color: #f2e4c9;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.hdr-btn:hover{ filter: brightness(1.08); }
+.hdr-btn:active{ transform: translateY(1px); }
+
 /* мобілка */
 @media (max-width: 640px){
   .map-shell{ padding: 10px; }
-  header .created{ display:none; }
 }

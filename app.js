@@ -12,12 +12,25 @@
 
   const markersLayer = L.layerGroup().addTo(map);
 
+  const refreshBtn = document.getElementById("refreshBtn");
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", String(Date.now()));
+      window.location.replace(url.toString());
+    });
+  }
+
   const markers = await loadMarkers();
   renderMarkers(markers);
 
   async function loadMarkers() {
     try {
-      const res = await fetch(S.markersUrl, { cache: "no-store" });
+      const v = new URLSearchParams(location.search).get("v") || String(Date.now());
+      const res = await fetch(`${S.markersUrl}?v=${encodeURIComponent(v)}`, {
+        cache: "no-store"
+      });
       if (!res.ok) return [];
       const data = await res.json();
       return Array.isArray(data) ? data : [];
