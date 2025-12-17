@@ -8,6 +8,7 @@
   const map = Z.createMap("map");
   Z.addTiles(map);
   Z.fitToMap(map);
+  Z.attachZoomLabel(map);
 
   const markersLayer = L.layerGroup().addTo(map);
 
@@ -30,33 +31,37 @@
 
   renderAll();
   syncEditor();
+  setStatus("Готово. Клікни по карті, щоб додати мітку.");
 
-  // Добавление по клику
+  // Додати мітку по кліку
   map.on("click", (e) => {
     const { x, y } = Z.latLngToXy(map, e.latlng);
-    const m = { id: makeId(), name: "Ёлка", type: "tree", note: "", x, y };
+    const m = { id: makeId(), name: "Ялинка", type: "tree", note: "", x, y };
     markers.push(m);
     selectedId = m.id;
     renderAll();
     syncEditor();
+    setStatus("Додано мітку. Не забудь Export JSON.");
   });
 
+  // Координати під курсором
   map.on("mousemove", (e) => {
     const p = Z.latLngToXy(map, e.latlng);
     xyBadge.textContent = `x: ${p.x}, y: ${p.y}`;
   });
 
-  // Editor bindings
+  // Прив’язки редактора
   nameEl.addEventListener("input", () => {
     const m = current(); if (!m) return;
     m.name = nameEl.value;
     renderList();
+    highlightList();
   });
 
   typeEl.addEventListener("change", () => {
     const m = current(); if (!m) return;
     m.type = typeEl.value;
-    renderAll(); // чтобы иконка обновилась
+    renderAll(); // оновити іконку
   });
 
   noteEl.addEventListener("input", () => {
@@ -70,11 +75,12 @@
     selectedId = markers[0]?.id ?? null;
     renderAll();
     syncEditor();
+    setStatus("Мітку видалено.");
   };
 
   exportBtn.onclick = () => {
     downloadJson(markers, "markers.json");
-    setStatus("Скачал markers.json — закинь в репо и сделай commit.");
+    setStatus("markers.json завантажено. Додай у репозиторій та зроби commit.");
   };
 
   importInput.onchange = async () => {
@@ -86,24 +92,24 @@
     selectedId = markers[0]?.id ?? null;
     renderAll();
     syncEditor();
-    setStatus("Импортировано.");
+    setStatus("Імпортовано markers.json.");
   };
 
   saveDraftBtn.onclick = () => {
     localStorage.setItem("rdr2_markers_draft", JSON.stringify(markers));
-    setStatus("Черновик сохранён в браузере.");
+    setStatus("Чернетку збережено в браузері.");
   };
 
   loadDraftBtn.onclick = () => {
     const raw = localStorage.getItem("rdr2_markers_draft");
-    if (!raw) return setStatus("Черновик не найден.");
+    if (!raw) return setStatus("Чернетку не знайдено.");
     const data = JSON.parse(raw);
-    if (!Array.isArray(data)) return setStatus("Черновик повреждён.");
+    if (!Array.isArray(data)) return setStatus("Чернетка пошкоджена.");
     markers = data;
     selectedId = markers[0]?.id ?? null;
     renderAll();
     syncEditor();
-    setStatus("Черновик загружен.");
+    setStatus("Чернетку завантажено.");
   };
 
   // ---------- render ----------
@@ -136,7 +142,7 @@
 
     renderList();
     highlightList();
-    countBadge.textContent = `Метки: ${markers.length}`;
+    countBadge.textContent = `Мітки: ${markers.length}`;
   }
 
   function renderList() {
@@ -146,7 +152,7 @@
       btn.type = "button";
       btn.className = "list-btn";
       btn.dataset.id = m.id;
-      btn.textContent = `${idx + 1}. ${m.name || "Метка"} (${m.type || "tree"})`;
+      btn.textContent = `${idx + 1}. ${m.name || "Мітка"} (${m.type || "tree"})`;
       btn.onclick = () => {
         selectedId = m.id;
         syncEditor();
@@ -171,14 +177,12 @@
       nameEl.value = "";
       typeEl.value = "tree";
       noteEl.value = "";
-      xyBadge.textContent = "x: —, y: —";
       return;
     }
 
     nameEl.value = m.name || "";
     typeEl.value = m.type || "tree";
     noteEl.value = m.note || "";
-    xyBadge.textContent = `x: ${m.x}, y: ${m.y}`;
   }
 
   function current() {
@@ -191,15 +195,15 @@
     return L.divIcon({
       className: "rdr2-marker",
       html: `<div style="
-        width:16px;height:16px;border-radius:8px;
+        width:24px;height:24px;border-radius:12px;
         display:flex;align-items:center;justify-content:center;
         background:rgba(43,29,18,.85);
         border:1px solid rgba(185,137,69,.55);
         box-shadow:0 6px 16px rgba(0,0,0,.35);
-        font-size:16px;
+        font-size:14px;
       ">${html}</div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
     });
   }
 

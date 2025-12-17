@@ -75,16 +75,18 @@
   // Індикатор масштабу всередині блоку +/-
   function attachZoomLabel(map) {
     const s = getSettings();
-    const base = refZoom(); // 1:1 з оригіналом саме на tilesMaxZoom
+    const base = refZoom();
     const zoomContainer = map.zoomControl?.getContainer?.();
     if (!zoomContainer) return;
 
-    // не дублюємо
     if (zoomContainer.querySelector(".leaflet-control-zoom-level")) return;
 
     const el = document.createElement("div");
     el.className = "leaflet-control-zoom-level";
-    zoomContainer.appendChild(el);
+
+    const zoomOut = zoomContainer.querySelector(".leaflet-control-zoom-out");
+    if (zoomOut) zoomContainer.insertBefore(el, zoomOut);
+    else zoomContainer.appendChild(el);
 
     const fmtScale = (v) => {
       if (v >= 10) return v.toFixed(0);
@@ -94,9 +96,12 @@
 
     const update = () => {
       const z = map.getZoom();
-      const scale = Math.pow(2, z - base); // відносно 1:1 на base
+      const scale = Math.pow(2, z - base);
       el.textContent = `z ${z.toFixed(2)} · ×${fmtScale(scale)}`;
-      el.title = `Поточний зум: ${z.toFixed(2)}\nМасштаб відносно оригіналу (на z=${base}): ×${fmtScale(scale)}\nТайли є до z=${s.tilesMaxZoom}, далі — оверзум`;
+      el.title =
+        `Поточний зум: ${z.toFixed(2)}\n` +
+        `Масштаб відносно 1:1 (на z=${base}): ×${fmtScale(scale)}\n` +
+        `Тайли є до z=${s.tilesMaxZoom}, далі — оверзум`;
     };
 
     map.on("zoom zoomend", update);

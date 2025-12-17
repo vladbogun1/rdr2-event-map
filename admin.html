@@ -1,39 +1,42 @@
 <!doctype html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>RDR2 Event Map — Admin</title>
+    <title>RDR2 Мапа події — Адмін</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="./theme.css">
 </head>
-<body>
+<body class="page">
 <header>
-    <div class="title">🪵 RDR2 Event Map — Admin</div>
+    <div class="header-row">
+        <div class="title">🪵 RDR2 Мапа події — Адмін</div>
+        <div class="created">Created By: <a href="https://github.com/v_lastelin" target="_blank" rel="noopener">@v_lastelin</a></div>
+    </div>
 </header>
 
 <div class="wrap">
     <aside class="panel">
-        <h2>Метки</h2>
+        <h2>Мітки</h2>
 
         <div class="previewbar">
-            <span class="badge" id="countBadge">Метки: 0</span>
+            <span class="badge" id="countBadge">Мітки: 0</span>
             <span class="badge" id="xyBadge">x: —, y: —</span>
         </div>
 
         <div id="list" class="list"></div>
 
-        <div class="info" style="margin-top:12px">
-            Клик по карте — добавить метку<br>
-            Перетяни — изменить позицию<br>
-            Export → коммитишь markers.json в GitHub Pages
+        <div class="info">
+            Клік по карті — додати мітку
+            Перетягни мітку — змінити позицію
+            Export JSON — збережи та закоміть markers.json у репозиторій
         </div>
 
         <h2 style="margin-top:14px">Редактор</h2>
 
-        <label class="label">Название</label>
-        <input id="name" class="input" placeholder="Ёлка #..." />
+        <label class="label">Назва</label>
+        <input id="name" class="input" placeholder="Ялинка…" />
 
         <label class="label">Тип</label>
         <select id="type" class="select">
@@ -41,31 +44,34 @@
             <option value="pin">pin</option>
         </select>
 
-        <label class="label">Заметка</label>
-        <textarea id="note" class="textarea" rows="3" placeholder="Комментарий…"></textarea>
+        <label class="label">Нотатка</label>
+        <textarea id="note" class="textarea" rows="3" placeholder="Коментар…"></textarea>
 
-        <div class="row2" style="margin-top:10px">
-            <button id="deleteBtn" class="btn btn-danger" disabled>Удалить</button>
+        <div class="row2">
+            <button id="deleteBtn" class="btn btn-danger" disabled>Видалити</button>
             <button id="exportBtn" class="btn">Export JSON</button>
         </div>
 
-        <div class="row2" style="margin-top:10px">
-            <button id="saveDraftBtn" class="btn btn-ghost">Save draft</button>
-            <button id="loadDraftBtn" class="btn btn-ghost">Load draft</button>
+        <div class="row2">
+            <button id="saveDraftBtn" class="btn btn-ghost">Зберегти чернетку</button>
+            <button id="loadDraftBtn" class="btn btn-ghost">Завантажити чернетку</button>
         </div>
 
-        <label class="label">Import markers.json</label>
+        <label class="label">Імпорт markers.json</label>
         <input id="importInput" class="input" type="file" accept="application/json" />
 
-        <div class="info" id="statusBox" style="margin-top:10px">—</div>
+        <div class="info" id="statusBox">—</div>
     </aside>
 
     <main class="main">
         <div class="previewbar">
-            <span class="badge">Нажми на метку — выбрать</span>
-            <span class="badge">Drag — переместить</span>
+            <span class="badge">Натисни на мітку — вибрати</span>
+            <span class="badge">Drag — перемістити</span>
         </div>
-        <div id="map"></div>
+
+        <div class="map-holder">
+            <div id="map"></div>
+        </div>
     </main>
 </div>
 
