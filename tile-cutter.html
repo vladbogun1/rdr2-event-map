@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RDR2 Tile Cutter (Local)</title>
+
+    <!-- Leaflet (preview) -->
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+        :root{
+          --bg:#1a140f;
+          --wood:#2b1d12;
+          --wood2:#3a2616;
+          --paper:#e6d6b8;
+          --ink:#2a2017;
+          --accent:#b98945;
+        }
+        *{box-sizing:border-box}
+        body{
+          margin:0;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+          background:
+            radial-gradient(1200px 600px at 30% 10%, #3a2818 0%, transparent 60%),
+            radial-gradient(900px 500px at 80% 30%, #2a1b11 0%, transparent 55%),
+            linear-gradient(180deg, #120d09 0%, #1a140f 100%);
+          color: var(--paper);
+        }
+        header{
+          padding:14px 18px;
+          border-bottom: 2px solid rgba(185,137,69,.35);
+          background: linear-gradient(180deg, rgba(58,38,22,.9), rgba(43,29,18,.9));
+          position: sticky;
+          top:0;
+          z-index: 10;
+        }
+        header .title{
+          font-weight: 800;
+          letter-spacing: .5px;
+          text-shadow: 0 2px 0 rgba(0,0,0,.4);
+        }
+        .wrap{
+          display:grid;
+          grid-template-columns: 360px 1fr;
+          gap: 14px;
+          padding: 14px;
+        }
+        @media (max-width: 980px){
+          .wrap{grid-template-columns: 1fr; }
+        }
+
+        .panel{
+          background: linear-gradient(180deg, rgba(58,38,22,.85), rgba(43,29,18,.85));
+          border: 1px solid rgba(185,137,69,.25);
+          border-radius: 14px;
+          padding: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.35);
+        }
+        .panel h2{
+          margin:0 0 10px 0;
+          font-size: 14px;
+          letter-spacing: .3px;
+          color: #f2e4c9;
+        }
+        label{
+          display:block;
+          font-size: 12px;
+          opacity:.95;
+          margin: 10px 0 6px;
+        }
+        input[type="file"], input[type="number"], select, button{
+          width:100%;
+          padding:10px 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(185,137,69,.35);
+          background: rgba(230,214,184,.08);
+          color: var(--paper);
+          outline: none;
+        }
+        input[type="range"]{
+          width:100%;
+        }
+        button{
+          cursor:pointer;
+          font-weight: 700;
+          background: linear-gradient(180deg, rgba(185,137,69,.35), rgba(185,137,69,.18));
+          transition: transform .06s ease, filter .2s ease;
+        }
+        button:active{ transform: translateY(1px); }
+        button:disabled{ opacity:.55; cursor:not-allowed; }
+        .row2{
+          display:grid;
+          grid-template-columns: 1fr 1fr;
+          gap:10px;
+        }
+        .info{
+          margin-top:10px;
+          padding:10px;
+          border-radius: 12px;
+          background: rgba(0,0,0,.18);
+          border: 1px dashed rgba(185,137,69,.25);
+          font-size: 12px;
+          line-height: 1.35;
+          color: #f3e7d0;
+          white-space: pre-wrap;
+        }
+        .progressbox{
+          margin-top:10px;
+          padding:10px;
+          border-radius: 12px;
+          background: rgba(0,0,0,.18);
+          border: 1px solid rgba(185,137,69,.22);
+        }
+        progress{
+          width:100%;
+          height: 14px;
+          border-radius: 999px;
+          overflow:hidden;
+        }
+        .status{
+          margin-top:8px;
+          font-size: 12px;
+          opacity:.95;
+        }
+
+        .main{
+          background: linear-gradient(180deg, rgba(230,214,184,.07), rgba(0,0,0,.10));
+          border: 1px solid rgba(185,137,69,.22);
+          border-radius: 14px;
+          padding: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.35);
+          min-height: 520px;
+        }
+        .previewbar{
+          display:flex;
+          gap:10px;
+          align-items:center;
+          flex-wrap:wrap;
+          margin-bottom:10px;
+        }
+        .badge{
+          padding: 6px 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(185,137,69,.25);
+          background: rgba(0,0,0,.16);
+          font-size: 12px;
+        }
+        #map{
+          width:100%;
+          height: 68vh;
+          min-height: 440px;
+          border-radius: 12px;
+          overflow:hidden;
+          border: 1px solid rgba(185,137,69,.22);
+        }
+        .hint{
+          margin-top:10px;
+          font-size: 12px;
+          opacity: .9;
+          line-height: 1.35;
+        }
+        code{ background: rgba(0,0,0,.2); padding:2px 6px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="title">🪵 RDR2 Tile Cutter (Local) — режем карту в тайлы + ZIP</div>
+</header>
+
+<div class="wrap">
+    <aside class="panel">
+        <h2>Настройки</h2>
+
+        <label>1) Выбери исходную картинку карты</label>
+        <input id="file" type="file" accept="image/*" />
+
+        <div class="row2">
+            <div>
+                <label>Tile size</label>
+                <select id="tileSize">
+                    <option value="256" selected>256</option>
+                    <option value="512">512</option>
+                </select>
+            </div>
+            <div>
+                <label>Max zoom (z)</label>
+                <input id="maxZoom" type="number" min="0" max="10" value="6" />
+            </div>
+        </div>
+
+        <div class="row2">
+            <div>
+                <label>Формат тайлов</label>
+                <select id="format">
+                    <option value="webp" selected>WebP (рекомендуется)</option>
+                    <option value="png">PNG (тяжелее)</option>
+                    <option value="jpeg">JPG (без прозрачности)</option>
+                </select>
+            </div>
+            <div>
+                <label>Качество (WebP/JPG)</label>
+                <input id="quality" type="range" min="0.5" max="0.95" step="0.01" value="0.82" />
+                <div class="status" id="qLabel">0.82</div>
+            </div>
+        </div>
+
+        <label>2) Сгенерировать тайлы и скачать ZIP</label>
+        <button id="generate" disabled>Generate tiles → Download ZIP</button>
+        <button id="cancel" disabled style="margin-top:8px;background:rgba(185,70,69,.25);border-color:rgba(185,70,69,.35)">Cancel</button>
+
+        <div class="progressbox">
+            <progress id="progress" value="0" max="1"></progress>
+            <div class="status" id="status">Жду картинку…</div>
+        </div>
+
+        <div class="info" id="info">—</div>
+    </aside>
+
+    <main class="main">
+        <div class="previewbar">
+            <span class="badge">Preview zoom</span>
+            <input id="zoomSlider" type="range" min="0" max="6" step="0.25" value="0" disabled style="flex:1;min-width:220px" />
+            <span class="badge" id="zoomLabel">z=0</span>
+        </div>
+        <div id="map"></div>
+
+        <div class="hint">
+            Превью показывает, как будет “пикселить” на выбранном <code>maxZoom</code>.
+            Для реальной детализации нужно, чтобы исходник был действительно большой (как твой 9000×7004) — тогда x6 норм.
+        </div>
+    </main>
+</div>
+
+<!-- libs -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+    const fileEl = document.getElementById('file');
+    const tileSizeEl = document.getElementById('tileSize');
+    const maxZoomEl = document.getElementById('maxZoom');
+    const formatEl = document.getElementById('format');
+    const qualityEl = document.getElementById('quality');
+    const qLabel = document.getElementById('qLabel');
+    const generateBtn = document.getElementById('generate');
+    const cancelBtn = document.getElementById('cancel');
+    const progressEl = document.getElementById('progress');
+    const statusEl = document.getElementById('status');
+    const infoEl = document.getElementById('info');
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomLabel = document.getElementById('zoomLabel');
+
+    let map = null;
+    let imgURL = null;
+    let imgBitmap = null;
+    let imgW = 0, imgH = 0;
+    let cancelFlag = false;
+
+    qualityEl.addEventListener('input', () => qLabel.textContent = (+qualityEl.value).toFixed(2));
+    qLabel.textContent = (+qualityEl.value).toFixed(2);
+
+    function recommendMaxZoom(w, h, tileSize){
+      // приблизительная рекомендация: чтобы на maxZoom один пиксель исходника ~= 1 пиксель карты
+      // maxZoom ≈ ceil(log2(maxDim / tileSize))
+      const m = Math.max(w, h) / tileSize;
+      return Math.max(0, Math.ceil(Math.log2(m)));
+    }
+
+    function setupPreview(){
+      if(!imgURL) return;
+      const maxZ = clampInt(+maxZoomEl.value, 0, 10);
+
+      if(map) map.remove();
+
+      map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -4,
+        maxZoom: maxZ,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25,
+        wheelPxPerZoomLevel: 120
+      });
+
+      const bounds = [[0,0],[imgH, imgW]];
+      L.imageOverlay(imgURL, bounds).addTo(map);
+      map.fitBounds(bounds);
+      map.setMaxBounds(L.latLngBounds(bounds).pad(0.15));
+
+      zoomSlider.disabled = false;
+      zoomSlider.min = -4;
+      zoomSlider.max = maxZ;
+      zoomSlider.value = map.getZoom();
+      zoomLabel.textContent = `z=${(+map.getZoom()).toFixed(2)} / ${maxZ}`;
+
+      map.on('zoomend', () => {
+        zoomSlider.value = map.getZoom();
+        zoomLabel.textContent = `z=${(+map.getZoom()).toFixed(2)} / ${maxZ}`;
+      });
+    }
+
+    zoomSlider.addEventListener('input', () => {
+      if(!map) return;
+      map.setZoom(+zoomSlider.value);
+    });
+
+    maxZoomEl.addEventListener('change', () => {
+      if(imgURL) setupPreview();
+    });
+
+    fileEl.addEventListener('change', async () => {
+      const file = fileEl.files && fileEl.files[0];
+      if(!file) return;
+
+      statusEl.textContent = 'Загружаю картинку…';
+      progressEl.value = 0;
+
+      if(imgURL) URL.revokeObjectURL(imgURL);
+      imgURL = URL.createObjectURL(file);
+
+      // createImageBitmap быстрее и меньше лагов при drawImage
+      imgBitmap = await createImageBitmap(file);
+      imgW = imgBitmap.width;
+      imgH = imgBitmap.height;
+
+      const rec = recommendMaxZoom(imgW, imgH, +tileSizeEl.value);
+
+      infoEl.textContent =
+        `Файл: ${file.name}\n` +
+        `Размер: ${imgW}×${imgH}px\n` +
+        `Вес: ${(file.size/1024/1024).toFixed(2)} MB\n` +
+        `Рекомендованный maxZoom: ${rec}\n\n` +
+        `Подсказка:\n` +
+        `- WebP quality 0.80–0.85 обычно топ.\n` +
+        `- maxZoom выше рекомендованного = “оверзум” (удобно целиться, но деталей сверх исходника не добавит).`;
+
+      setupPreview();
+      statusEl.textContent = 'Готово. Можно генерировать тайлы.';
+      generateBtn.disabled = false;
+    });
+
+    tileSizeEl.addEventListener('change', () => {
+      if(!imgBitmap) return;
+      const rec = recommendMaxZoom(imgW, imgH, +tileSizeEl.value);
+      infoEl.textContent =
+        infoEl.textContent.replace(/Рекомендованный maxZoom: .*?\n/, `Рекомендованный maxZoom: ${rec}\n`);
+    });
+
+    function clampInt(v, min, max){
+      v = Math.floor(Number(v));
+      if(Number.isNaN(v)) return min;
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function sleep0(){
+      return new Promise(r => setTimeout(r, 0));
+    }
+
+    function tileCountForZoom(w, h, tileSize, maxZoom, z){
+      const scale = Math.pow(2, maxZoom - z);
+      const levelW = Math.ceil(w / scale);
+      const levelH = Math.ceil(h / scale);
+      const cols = Math.ceil(levelW / tileSize);
+      const rows = Math.ceil(levelH / tileSize);
+      return { cols, rows, levelW, levelH, scale };
+    }
+
+    function totalTiles(w, h, tileSize, maxZoom){
+      let total = 0;
+      for(let z=0; z<=maxZoom; z++){
+        const t = tileCountForZoom(w, h, tileSize, maxZoom, z);
+        total += t.cols * t.rows;
+      }
+      return total;
+    }
+
+    function mimeAndExt(fmt){
+      if(fmt === 'png') return { mime:'image/png', ext:'png' };
+      if(fmt === 'jpeg') return { mime:'image/jpeg', ext:'jpg' };
+      return { mime:'image/webp', ext:'webp' };
+    }
+
+    function downloadBlob(blob, filename){
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    cancelBtn.addEventListener('click', () => {
+      cancelFlag = true;
+      cancelBtn.disabled = true;
+      statusEl.textContent = 'Отмена… (жду безопасного момента остановки)';
+    });
+
+    generateBtn.addEventListener('click', async () => {
+      if(!imgBitmap) return;
+
+      cancelFlag = false;
+      generateBtn.disabled = true;
+      cancelBtn.disabled = false;
+
+      const tileSize = +tileSizeEl.value;
+      const maxZ = clampInt(+maxZoomEl.value, 0, 10);
+      const fmt = formatEl.value;
+      const { mime, ext } = mimeAndExt(fmt);
+      const quality = +qualityEl.value;
+
+      const estimated = totalTiles(imgW, imgH, tileSize, maxZ);
+      statusEl.textContent = `Генерация тайлов… всего ~${estimated} шт.`;
+      progressEl.value = 0;
+
+      // один canvas переиспользуем для всех тайлов
+      const canvas = document.createElement('canvas');
+      canvas.width = tileSize;
+      canvas.height = tileSize;
+      const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+
+      const zip = new JSZip();
+      const tilesRoot = zip.folder('tiles');
+
+      let done = 0;
+
+      try{
+        for(let z=0; z<=maxZ; z++){
+          const { cols, rows, scale } = tileCountForZoom(imgW, imgH, tileSize, maxZ, z);
+          const zFolder = tilesRoot.folder(String(z));
+
+          for(let x=0; x<cols; x++){
+            const xFolder = zFolder.folder(String(x));
+
+            for(let y=0; y<rows; y++){
+              if(cancelFlag) throw new Error('CANCELLED');
+
+              // всегда 256×256 (или выбранный tileSize), края остаются прозрачными
+              ctx.clearRect(0, 0, tileSize, tileSize);
+
+              const sx = x * tileSize * scale;
+              const sy = y * tileSize * scale;
+              const sw = Math.min(tileSize * scale, imgW - sx);
+              const sh = Math.min(tileSize * scale, imgH - sy);
+
+              if(sw > 0 && sh > 0){
+                const dw = Math.ceil(sw / scale);
+                const dh = Math.ceil(sh / scale);
+                // ресемплинг браузером -> в тайл нужного размера
+                ctx.drawImage(imgBitmap, sx, sy, sw, sh, 0, 0, dw, dh);
+              }
+
+              const blob = await new Promise(res => {
+                if(mime === 'image/png') {
+                  canvas.toBlob(res, mime);
+                } else {
+                  canvas.toBlob(res, mime, quality);
+                }
+              });
+
+              xFolder.file(`${y}.${ext}`, blob);
+
+              done++;
+              progressEl.value = done / estimated;
+
+              if(done % 25 === 0){
+                statusEl.textContent = `z=${z}/${maxZ}  tile ${done}/${estimated}  (${Math.round(progressEl.value*100)}%)`;
+                await sleep0(); // даём UI “подышать”
+              }
+            }
+          }
+        }
+
+        zip.file('tiles_meta.json', JSON.stringify({
+          width: imgW,
+          height: imgH,
+          tileSize,
+          maxZoom: maxZ,
+          format: ext,
+          generatedAt: new Date().toISOString()
+        }, null, 2));
+
+        statusEl.textContent = 'Упаковываю ZIP… (это тоже может занять время)';
+        await sleep0();
+
+        const zipBlob = await zip.generateAsync({
+          type: 'blob',
+          compression: 'DEFLATE',
+          compressionOptions: { level: 6 }
+        }, (meta) => {
+          // meta.percent — прогресс упаковки
+          if(meta && typeof meta.percent === 'number'){
+            // оставим progressEl как общий индикатор (не дергаем сильно)
+            statusEl.textContent = `Упаковка ZIP… ${meta.percent.toFixed(1)}%`;
+          }
+        });
+
+        const name = `tiles_z0-${maxZ}_${imgW}x${imgH}_${ext}.zip`;
+        downloadBlob(zipBlob, name);
+
+        statusEl.textContent = `Готово! Скачан ${name}`;
+      }catch(e){
+        if(String(e && e.message) === 'CANCELLED'){
+          statusEl.textContent = 'Остановлено.';
+        }else{
+          console.error(e);
+          statusEl.textContent = 'Ошибка: ' + (e && e.message ? e.message : e);
+        }
+      }finally{
+        cancelBtn.disabled = true;
+        generateBtn.disabled = false;
+        cancelFlag = false;
+        progressEl.value = 0;
+      }
+    });
+</script>
+</body>
+</html>

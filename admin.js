@@ -1,305 +1,312 @@
-(() => {
-  const { W: MAP_W, H: MAP_H, MAX_ZOOM } = window.MAP_CONFIG;
+"use strict";
 
-  const map = L.map("map", {
-    crs: L.CRS.Simple,
-    minZoom: 0,
-    maxZoom: MAX_ZOOM,
-    zoomSnap: 0.25,
-    zoomDelta: 0.5,
-    wheelPxPerZoomLevel: 90,
-    preferCanvas: true,
-    attributionControl: false,
-  });
+(async function () {
+  const S = window.RDR2_MAP_SETTINGS;
+  const Z = window.RDR2_MAP_ZOOM;
 
-  const bounds = L.latLngBounds(
-    map.unproject([0, MAP_H], MAX_ZOOM),
-    map.unproject([MAP_W, 0], MAX_ZOOM)
-  );
+  const map = Z.createMap("map");
+  Z.addTiles(map);
+  Z.fitToMap(map);
 
-  L.tileLayer("tiles/{z}/{x}/{y}.webp", {
-    bounds,
-    minZoom: 0,
-    maxZoom: MAX_ZOOM,
-    noWrap: true,
-    updateWhenZooming: false,
-    keepBuffer: 2,
-  }).addTo(map);
+  const markersLayer = L.layerGroup().addTo(map);
 
-  map.fitBounds(bounds);
-  map.setMaxBounds(bounds.pad(0.02));
+  let markers = await loadMarkersOrEmpty();
+  let selectedId = null;
 
-  const icons = {
-    tree: L.divIcon({ className: "", html: '<div class="marker marker--tree">🌲</div>', iconSize: [28,28], iconAnchor:[14,14]}),
-    rare: L.divIcon({ className: "", html: '<div class="marker marker--rare">⭐</div>', iconSize: [28,28], iconAnchor:[14,14]}),
-    done: L.divIcon({ className: "", html: '<div class="marker marker--done">✅</div>', iconSize: [28,28], iconAnchor:[14,14]}),
-    other: L.divIcon({ className: "", html: '<div class="marker">📍</div>', iconSize: [28,28], iconAnchor:[14,14]}),
-  };
+  const ui = buildUI();
+  renderAll();
 
-  const state = {
-    markers: [],
-    leafletMarkers: new Map(),
-    selectedId: null,
-  };
-
-  const $ = (id) => document.getElementById(id);
-  const elCount = $("count");
-  const elList = $("list");
-
-  const f = {
-    id: $("mId"),
-    name: $("mName"),
-    type: $("mType"),
-    note: $("mNote"),
-    x: $("mX"),
-    y: $("mY"),
-  };
-
-  const esc = (s) => (s ?? "").toString().replace(/[&<>"']/g, (c) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
-
-  function uid(){
-    // short-ish random id
-    return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
-  }
-
-  function typeLabel(t){
-    return ({tree:"🌲 tree", rare:"⭐ rare", done:"✅ done", other:"📍 other"}[t] || t);
-  }
-
-  function setSelected(id){
-    state.selectedId = id;
-    const m = state.markers.find(x => x.id === id) || null;
-
-    if (!m){
-      f.id.value = "";
-      f.name.value = "";
-      f.type.value = "tree";
-      f.note.value = "";
-      f.x.value = "";
-      f.y.value = "";
-      return;
-    }
-
-    f.id.value = m.id;
-    f.name.value = m.name || "";
-    f.type.value = m.type || "tree";
-    f.note.value = m.note || "";
-    f.x.value = m.x;
-    f.y.value = m.y;
-
-    // focus map
-    const ll = map.unproject([m.x, m.y], MAX_ZOOM);
-    map.setView(ll, Math.min(MAX_ZOOM, Math.max(map.getZoom(), MAX_ZOOM-0.5)), { animate:true });
-  }
-
-  function upsertLeafletMarker(m){
-    let lm = state.leafletMarkers.get(m.id);
-    const ll = map.unproject([m.x, m.y], MAX_ZOOM);
-    if (!lm){
-      lm = L.marker(ll, { icon: icons[m.type] || icons.other, draggable:true, keyboard:false });
-      lm.on("click", () => setSelected(m.id));
-      lm.on("dragend", () => {
-        const p = map.project(lm.getLatLng(), MAX_ZOOM);
-        m.x = Math.round(p.x);
-        m.y = Math.round(p.y);
-        if (state.selectedId === m.id){
-          f.x.value = m.x;
-          f.y.value = m.y;
-        }
-        renderList();
-      });
-      lm.addTo(map);
-      state.leafletMarkers.set(m.id, lm);
-    } else {
-      lm.setLatLng(ll);
-      lm.setIcon(icons[m.type] || icons.other);
-    }
-  }
-
-  function removeLeafletMarker(id){
-    const lm = state.leafletMarkers.get(id);
-    if (lm){
-      map.removeLayer(lm);
-      state.leafletMarkers.delete(id);
-    }
-  }
-
-  function renderList(){
-    elCount.textContent = String(state.markers.length);
-
-    // keep markers synced
-    for (const m of state.markers) upsertLeafletMarker(m);
-
-    const ids = new Set(state.markers.map(m => m.id));
-    for (const [id] of state.leafletMarkers){
-      if (!ids.has(id)) removeLeafletMarker(id);
-    }
-
-    elList.innerHTML = state.markers
-      .slice()
-      .sort((a,b)=>(a.name||"").localeCompare(b.name||""))
-      .map(m => `
-        <div class="item" data-id="${esc(m.id)}" style="${m.id===state.selectedId ? "outline:2px solid rgba(176,69,42,.5)" : ""}">
-          <div class="item__title">${esc(m.name || "Без названия")}</div>
-          <div class="item__meta">
-            <span class="tag">${typeLabel(m.type)}</span>
-            <span class="muted">x:${m.x} y:${m.y}</span>
-          </div>
-        </div>
-      `).join("");
-
-    for (const node of elList.querySelectorAll(".item")){
-      node.addEventListener("click", () => setSelected(node.getAttribute("data-id")));
-    }
-  }
-
-  function persistDraft(){
-    try{
-      localStorage.setItem("rdr2_markers_draft", JSON.stringify(state.markers));
-    }catch{}
-  }
-
-  function loadDraft(){
-    try{
-      const raw = localStorage.getItem("rdr2_markers_draft");
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      if (Array.isArray(data)) return data;
-      return null;
-    }catch{
-      return null;
-    }
-  }
-
-  async function loadMarkers(){
-    // try draft first
-    const draft = loadDraft();
-    if (draft){
-      state.markers = draft;
-      renderList();
-      return;
-    }
-
-    try{
-      const res = await fetch("./markers.json", { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP "+res.status);
-      const data = await res.json();
-      state.markers = Array.isArray(data) ? data : [];
-    }catch(e){
-      console.warn("Failed to load markers.json", e);
-      state.markers = [];
-    }
-    renderList();
-  }
-
-  function exportJSON(){
-    const jsonText = JSON.stringify(state.markers, null, 2);
-    const blob = new Blob([jsonText], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "markers.json";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(a.href);
-      a.remove();
-    }, 0);
-  }
-
-  async function copyJSON(){
-    const jsonText = JSON.stringify(state.markers, null, 2);
-    try{
-      await navigator.clipboard.writeText(jsonText);
-      alert("JSON скопирован в буфер обмена ✅");
-    }catch{
-      alert("Не получилось скопировать. Используй Export.");
-    }
-  }
-
-  function importJSONFile(file){
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const data = JSON.parse(String(reader.result || "[]"));
-        if (!Array.isArray(data)) throw new Error("Not array");
-        // normalize
-        state.markers = data.map(m => ({
-          id: String(m.id || uid()),
-          name: String(m.name || ""),
-          type: String(m.type || "tree"),
-          note: String(m.note || ""),
-          x: Number.isFinite(m.x) ? m.x : 0,
-          y: Number.isFinite(m.y) ? m.y : 0,
-        }));
-        state.selectedId = null;
-        persistDraft();
-        renderList();
-        alert("Импортировано ✅");
-      }catch(e){
-        alert("Ошибка импорта JSON: " + e.message);
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  // Map click -> add
+  // Добавление по клику
   map.on("click", (e) => {
-    const p = map.project(e.latlng, MAX_ZOOM);
+    const { x, y } = Z.latLngToXy(map, e.latlng);
     const m = {
-      id: uid(),
-      name: "Новая метка",
+      id: makeId(),
+      name: `Ёлка`,
       type: "tree",
       note: "",
-      x: Math.round(p.x),
-      y: Math.round(p.y),
+      x, y
     };
-    state.markers.push(m);
-    persistDraft();
-    renderList();
-    setSelected(m.id);
+    markers.push(m);
+    selectedId = m.id;
+    renderAll();
+    syncEditor();
   });
 
-  // Form bindings
-  function updateSelected(patch){
-    const m = state.markers.find(x => x.id === state.selectedId);
-    if (!m) return;
-    Object.assign(m, patch);
-    persistDraft();
-    upsertLeafletMarker(m);
-    renderList();
+  function iconFor(type) {
+    const html = type === "tree" ? "🌲" : "📍";
+    return L.divIcon({
+      className: "rdr2-marker",
+      html: `<div style="
+        width:28px;height:28px;border-radius:14px;
+        display:flex;align-items:center;justify-content:center;
+        background:rgba(43,29,18,.85);
+        border:1px solid rgba(185,137,69,.55);
+        box-shadow:0 6px 16px rgba(0,0,0,.35);
+        font-size:16px;
+      ">${html}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
   }
 
-  f.name.addEventListener("input", () => updateSelected({ name: f.name.value }));
-  f.type.addEventListener("change", () => updateSelected({ type: f.type.value }));
-  f.note.addEventListener("input", () => updateSelected({ note: f.note.value }));
+  function renderAll() {
+    markersLayer.clearLayers();
 
-  $("btnDelete").addEventListener("click", () => {
-    const id = state.selectedId;
-    if (!id) return;
-    const m = state.markers.find(x => x.id === id);
-    if (!m) return;
-    if (!confirm(`Удалить метку "${m.name || id}"?`)) return;
-    state.markers = state.markers.filter(x => x.id !== id);
-    state.selectedId = null;
-    persistDraft();
+    for (const m of markers) {
+      const ll = Z.xyToLatLng(map, m.x, m.y);
+
+      const leafletMarker = L.marker(ll, {
+        icon: iconFor(m.type || "tree"),
+        draggable: true
+      });
+
+      leafletMarker.on("click", () => {
+        selectedId = m.id;
+        syncEditor();
+        highlightList();
+      });
+
+      leafletMarker.on("dragend", (ev) => {
+        const xy = Z.latLngToXy(map, ev.target.getLatLng());
+        m.x = xy.x;
+        m.y = xy.y;
+        if (selectedId === m.id) syncEditor();
+      });
+
+      leafletMarker.addTo(markersLayer);
+    }
+
     renderList();
-    setSelected(null);
+    highlightList();
+    syncEditor();
+  }
+
+  function renderList() {
+    ui.list.innerHTML = "";
+
+    markers.forEach((m, idx) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "row";
+      row.textContent = `${idx + 1}. ${m.name || "Метка"} (${m.type || "tree"})`;
+      row.dataset.id = m.id;
+      row.onclick = () => {
+        selectedId = m.id;
+        syncEditor();
+        highlightList();
+        const ll = Z.xyToLatLng(map, m.x, m.y);
+        map.setView(ll, Math.max(1, map.getZoom()));
+      };
+      ui.list.appendChild(row);
+    });
+
+    ui.count.textContent = `Метки: ${markers.length}`;
+  }
+
+  function highlightList() {
+    for (const btn of ui.list.querySelectorAll(".row")) {
+      btn.classList.toggle("active", btn.dataset.id === selectedId);
+    }
+  }
+
+  function current() {
+    return markers.find((m) => m.id === selectedId) || null;
+  }
+
+  function syncEditor() {
+    const m = current();
+    ui.deleteBtn.disabled = !m;
+
+    if (!m) {
+      ui.name.value = "";
+      ui.type.value = "tree";
+      ui.note.value = "";
+      ui.xy.textContent = "x: —, y: —";
+      return;
+    }
+
+    ui.name.value = m.name || "";
+    ui.type.value = m.type || "tree";
+    ui.note.value = m.note || "";
+    ui.xy.textContent = `x: ${m.x}, y: ${m.y}`;
+  }
+
+  ui.name.addEventListener("input", () => {
+    const m = current(); if (!m) return;
+    m.name = ui.name.value;
+    renderList(); highlightList();
   });
 
-  $("btnNew").addEventListener("click", () => {
-    state.selectedId = null;
-    setSelected(null);
+  ui.type.addEventListener("change", () => {
+    const m = current(); if (!m) return;
+    m.type = ui.type.value;
+    renderAll(); // чтобы иконка обновилась
   });
 
-  $("btnExport").addEventListener("click", exportJSON);
-  $("btnCopy").addEventListener("click", copyJSON);
-  $("fileImport").addEventListener("change", (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) importJSONFile(file);
-    e.target.value = "";
+  ui.note.addEventListener("input", () => {
+    const m = current(); if (!m) return;
+    m.note = ui.note.value;
   });
 
-  loadMarkers();
+  ui.deleteBtn.onclick = () => {
+    const m = current(); if (!m) return;
+    markers = markers.filter((x) => x.id !== m.id);
+    selectedId = markers[0]?.id ?? null;
+    renderAll();
+  };
+
+  ui.exportBtn.onclick = () => downloadJson(markers, "markers.json");
+
+  ui.copyBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(markers, null, 2));
+      ui.status.textContent = "Скопировано в буфер!";
+      setTimeout(() => (ui.status.textContent = ""), 1500);
+    } catch {
+      ui.status.textContent = "Не удалось скопировать (браузер запретил).";
+    }
+  };
+
+  ui.importInput.onchange = async () => {
+    const file = ui.importInput.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) return;
+    markers = data;
+    selectedId = markers[0]?.id ?? null;
+    renderAll();
+  };
+
+  ui.saveDraftBtn.onclick = () => {
+    localStorage.setItem("rdr2_markers_draft", JSON.stringify(markers));
+    ui.status.textContent = "Черновик сохранён в браузере.";
+    setTimeout(() => (ui.status.textContent = ""), 1500);
+  };
+
+  ui.loadDraftBtn.onclick = () => {
+    const raw = localStorage.getItem("rdr2_markers_draft");
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) return;
+    markers = data;
+    selectedId = markers[0]?.id ?? null;
+    renderAll();
+  };
+
+  // -------- helpers --------
+
+  async function loadMarkersOrEmpty() {
+    try {
+      const res = await fetch(S.markersUrl, { cache: "no-store" });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function makeId() {
+    return (crypto?.randomUUID?.() || `id_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  }
+
+  function downloadJson(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function buildUI() {
+    // Мини-панель. Если хочешь — мы её потом стилизуем под твой "вестерн" дизайн сильнее.
+    const panel = document.createElement("div");
+    panel.style.cssText = `
+      position:fixed; right:12px; top:12px; bottom:12px;
+      width:320px; z-index:9999;
+      background:rgba(43,29,18,.92);
+      border:1px solid rgba(185,137,69,.35);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      padding:12px;
+      color:#f2e4c9;
+      font-family:system-ui,Segoe UI,Arial;
+      overflow:auto;
+    `;
+
+    panel.innerHTML = `
+      <div style="font-weight:800;margin-bottom:8px">Admin — метки</div>
+      <div id="count" style="opacity:.9;margin-bottom:10px">Метки: 0</div>
+
+      <div style="font-size:12px;opacity:.9;margin:10px 0 6px">Список</div>
+      <div id="list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+
+      <div style="font-size:12px;opacity:.9;margin:10px 0 6px">Редактор</div>
+      <input id="name" placeholder="Название" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.35);background:rgba(230,214,184,.08);color:#f2e4c9;outline:none" />
+      <select id="type" style="margin-top:8px;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.35);background:rgba(230,214,184,.08);color:#f2e4c9;outline:none">
+        <option value="tree">tree</option>
+        <option value="pin">pin</option>
+      </select>
+      <textarea id="note" placeholder="Заметка" rows="3" style="margin-top:8px;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.35);background:rgba(230,214,184,.08);color:#f2e4c9;outline:none;resize:vertical"></textarea>
+      <div id="xy" style="margin-top:8px;font-size:12px;opacity:.9">x: —, y: —</div>
+
+      <button id="delete" style="margin-top:10px;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(185,70,69,.35);background:rgba(185,70,69,.18);color:#f2e4c9;font-weight:800;cursor:pointer">Удалить</button>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+        <button id="export" style="padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.35);background:rgba(185,137,69,.18);color:#f2e4c9;font-weight:800;cursor:pointer">Export JSON</button>
+        <button id="copy" style="padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.35);background:rgba(185,137,69,.10);color:#f2e4c9;font-weight:800;cursor:pointer">Copy JSON</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+        <button id="saveDraft" style="padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.25);background:rgba(0,0,0,.16);color:#f2e4c9;font-weight:800;cursor:pointer">Save draft</button>
+        <button id="loadDraft" style="padding:10px;border-radius:12px;border:1px solid rgba(185,137,69,.25);background:rgba(0,0,0,.10);color:#f2e4c9;font-weight:800;cursor:pointer">Load draft</button>
+      </div>
+
+      <div style="margin-top:10px">
+        <input id="import" type="file" accept="application/json" style="width:100%" />
+      </div>
+
+      <div id="status" style="margin-top:10px;font-size:12px;opacity:.9"></div>
+
+      <style>
+        .row{
+          text-align:left;
+          padding:10px;
+          border-radius:12px;
+          border:1px solid rgba(185,137,69,.25);
+          background:rgba(0,0,0,.16);
+          color:#f2e4c9;
+          cursor:pointer;
+        }
+        .row.active{
+          border-color: rgba(185,137,69,.6);
+          background: rgba(185,137,69,.16);
+        }
+      </style>
+    `;
+
+    document.body.appendChild(panel);
+
+    return {
+      panel,
+      count: panel.querySelector("#count"),
+      list: panel.querySelector("#list"),
+      name: panel.querySelector("#name"),
+      type: panel.querySelector("#type"),
+      note: panel.querySelector("#note"),
+      xy: panel.querySelector("#xy"),
+      deleteBtn: panel.querySelector("#delete"),
+      exportBtn: panel.querySelector("#export"),
+      copyBtn: panel.querySelector("#copy"),
+      saveDraftBtn: panel.querySelector("#saveDraft"),
+      loadDraftBtn: panel.querySelector("#loadDraft"),
+      importInput: panel.querySelector("#import"),
+      status: panel.querySelector("#status")
+    };
+  }
 })();
