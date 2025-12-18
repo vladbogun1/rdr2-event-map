@@ -317,7 +317,7 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
 }
 
 .marker-bubble.decorated{
-  background: rgba(0,0,0,.68);
+  background: rgba(0,0,0,.48);
   border-color: rgba(185,137,69,.22);
   opacity: .65;
   filter: saturate(.6) grayscale(.25);
@@ -364,6 +364,105 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
+
+/* Header menu (⚙️) */
+.hdr-menu{
+  position: relative;
+  display:inline-flex;
+  align-items:center;
+  margin-left:10px;
+}
+
+.hdr-icon-btn{
+  width:36px;
+  height:32px;
+  border-radius:10px;
+  border:1px solid rgba(185,137,69,.35);
+  background: linear-gradient(180deg, rgba(58,38,22,.9), rgba(43,29,18,.9));
+  color:#f2e4c9;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+}
+
+.hdr-icon-btn:hover{
+  border-color: rgba(185,137,69,.65);
+}
+
+/* Щоб dropdown завжди був поверх карти */
+header{ z-index: 5000; }
+
+/* Dropdown краще як flex + gap (а не grid-gap без display) */
+.hdr-dropdown{
+  position:absolute;
+  right:0;
+  top: calc(100% + 10px);
+
+  min-width: 230px;
+  max-width: calc(100vw - 24px);
+
+  border-radius: 14px;
+  padding: 8px;
+  border: 1px solid rgba(185,137,69,.28);
+  background: linear-gradient(180deg, rgba(58,38,22,.95), rgba(43,29,18,.95));
+  box-shadow: 0 14px 40px rgba(0,0,0,.45);
+  z-index: 9999;
+
+  /* ВАЖЛИВО: нічого не показуємо поки hidden */
+  display: none;
+}
+
+/* коли hidden прибрали — тоді показуємо */
+.hdr-dropdown:not([hidden]){
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* на всяк випадок: hidden завжди ховає */
+.hdr-dropdown[hidden]{
+  display: none !important;
+}
+
+/* Мобілка: дозволяємо перенос рядків + меню не “зʼїжджає” */
+@media (max-width: 640px){
+  .header-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  header .title{ white-space: normal; }
+  header .created{ white-space: normal; }
+
+  .hdr-menu{ margin-left: 0; margin-top: 8px; }
+
+  .hdr-dropdown{
+      left: 0;
+      right: auto;
+  }
+}
+
+
+.dd-item{
+  width:100%;
+  text-align:left;
+  padding:10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(185,137,69,.18);
+  background: rgba(0,0,0,.12);
+  color:#f2e4c9;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.dd-item:hover{
+  background: rgba(185,137,69,.10);
+  border-color: rgba(185,137,69,.40);
+}
+
 
 /* мобілка */
 @media (max-width: 640px){

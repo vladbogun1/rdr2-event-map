@@ -33,7 +33,29 @@
         <div class="created">
             Created By:
             <a href="https://t.me/p_lastelin" target="_blank" rel="noopener">@v_lastelin</a>
-            <button id="refreshBtn" class="hdr-btn" type="button">Оновити дані</button>
+
+            <div class="hdr-menu" id="settingsWrap">
+                <button
+                        id="settingsBtn"
+                        class="hdr-icon-btn"
+                        type="button"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        title="Налаштування"
+                >
+                    ⚙️
+                </button>
+
+                <div id="settingsMenu" class="hdr-dropdown" role="menu" hidden>
+                    <button id="ddRefresh" class="dd-item" type="button" role="menuitem">
+                        🔄 Оновити дані
+                    </button>
+
+                    <button id="ddResetCooldowns" class="dd-item" type="button" role="menuitem">
+                        🧹 Скинути кулдауни ялинок
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </header>
