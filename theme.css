@@ -1,3 +1,7 @@
+/* ==========================================================================
+   Theme tokens
+   ========================================================================== */
+
 :root{
   --bg:#1a140f;
   --wood:#2b1d12;
@@ -7,8 +11,13 @@
   --danger:#b94645;
 }
 
-*{box-sizing:border-box}
-html, body{height:100%}
+/* ==========================================================================
+   Base / reset
+   ========================================================================== */
+
+*{ box-sizing:border-box; }
+
+html, body{ height:100%; }
 
 body{
   margin:0;
@@ -20,13 +29,23 @@ body{
     linear-gradient(180deg, #120d09 0%, #1a140f 100%);
 }
 
+.page{
+  display:flex;
+  flex-direction:column;
+  min-height:100dvh;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
 header{
   padding:14px 18px;
   border-bottom: 2px solid rgba(185,137,69,.35);
   background: linear-gradient(180deg, rgba(58,38,22,.9), rgba(43,29,18,.9));
   position: sticky;
   top:0;
-  z-index: 10;
+  z-index: 5000; /* keep dropdown above the map */
 }
 
 .header-row{
@@ -57,20 +76,18 @@ header .created a{
 }
 header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
 
-.page{
-  display:flex;
-  flex-direction:column;
-  min-height:100dvh;
-}
+/* ==========================================================================
+   Layout: viewer (map only) / admin (panel + map)
+   ========================================================================== */
 
-/* VIEWER (тільки карта) */
+/* Viewer page */
 .map-shell{
   padding: 14px;
   flex:1;
   min-height: 0;
 }
 
-/* ADMIN layout */
+/* Admin page */
 .wrap{
   display:grid;
   grid-template-columns: 360px 1fr;
@@ -79,9 +96,14 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   flex:1;
   min-height:0;
 }
+
 @media (max-width: 980px){
   .wrap{ grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   Panels / containers
+   ========================================================================== */
 
 .panel{
   background: linear-gradient(180deg, rgba(58,38,22,.85), rgba(43,29,18,.85));
@@ -111,6 +133,10 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   flex-direction:column;
   gap:10px;
 }
+
+/* ==========================================================================
+   Common UI primitives
+   ========================================================================== */
 
 .previewbar{
   display:flex;
@@ -159,6 +185,7 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   border-color: rgba(185,70,69,.35);
   background: rgba(185,70,69,.18);
 }
+
 .btn-ghost{
   border-color: rgba(185,137,69,.25);
   background: rgba(0,0,0,.14);
@@ -183,6 +210,10 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   white-space: pre-wrap;
 }
 
+/* ==========================================================================
+   Admin: markers list
+   ========================================================================== */
+
 .list{
   display:flex;
   flex-direction:column;
@@ -205,7 +236,17 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   background: rgba(185,137,69,.16);
 }
 
-/* MAP block */
+/* Admin: list scroll area only */
+#list{
+  max-height: 80px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+/* ==========================================================================
+   Map container
+   ========================================================================== */
+
 #map{
   width:100%;
   height:100%;
@@ -216,31 +257,25 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
 }
 
-/* у main карта має займати весь залишок */
+/* Admin: map should fill remaining height inside .main */
 .map-holder{
   flex:1;
   min-height:0;
 }
-.map-holder #map{
-  height:100%;
-}
+.map-holder #map{ height:100%; }
 
-/* ===== Admin: скрол тільки для списку міток ===== */
-#list{
-  max-height: 80px;
-  overflow: auto;
-  padding-right: 6px;
-}
+/* ==========================================================================
+   Leaflet controls (zoom + scale label)
+   ========================================================================== */
 
-/* ===== Leaflet: zoom control з лейблом ЗЛІВА ===== */
 .leaflet-control-zoom.leaflet-bar{
   border: none !important;
   box-shadow: none !important;
 
   display: grid !important;
-  grid-template-columns: 54px 36px;  /* лейбл | кнопки */
-  grid-template-rows: 36px 36px;     /* + / - */
-  column-gap: 8px;                   /* невеликий зазор між лейблом і кнопками */
+  grid-template-columns: 54px 36px;
+  grid-template-rows: 36px 36px;
+  column-gap: 8px;
 }
 
 .leaflet-control-zoom a{
@@ -269,7 +304,6 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   border-bottom-right-radius: 10px !important;
 }
 
-/* сам лейбл масштабу */
 .leaflet-control-zoom-level{
   grid-column: 1;
   grid-row: 1 / 3;
@@ -287,9 +321,13 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
 
   font-size: 12px;
   font-weight: 800;
-  font-variant-numeric: tabular-nums; /* щоб цифри не “стрибали” */
+  font-variant-numeric: tabular-nums;
   user-select:none;
 }
+
+/* ==========================================================================
+   Optional header button (legacy)
+   ========================================================================== */
 
 .hdr-btn{
   margin-left: 10px;
@@ -305,11 +343,18 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
 .hdr-btn:hover{ filter: brightness(1.08); }
 .hdr-btn:active{ transform: translateY(1px); }
 
+/* ==========================================================================
+   Markers (default / decorated) + numbering badge
+   ========================================================================== */
 
-/* ===== Маркер: звичайний / прикрашений ===== */
 .marker-bubble{
-  width:28px;height:28px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  width:28px;
+  height:28px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:rgba(43,29,18,.85);
   border:1px solid rgba(185,137,69,.55);
   box-shadow:0 6px 16px rgba(0,0,0,.35);
@@ -323,7 +368,26 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   filter: saturate(.6) grayscale(.25);
 }
 
-/* ===== Попап у “дерев’яному” стилі ===== */
+.marker-num{
+  position:absolute;
+  top:-8px;
+  right:-8px;
+  padding:2px 5px;
+  border-radius:999px;
+  background: rgba(0,0,0,.75);
+  border: 1px solid rgba(185,137,69,.35);
+  color:#f2e4c9;
+  font-size:10px;
+  font-weight:900;
+  line-height:1;
+  font-variant-numeric: tabular-nums;
+  pointer-events:none;
+}
+
+/* ==========================================================================
+   Leaflet popup (wood style)
+   ========================================================================== */
+
 .leaflet-popup-content-wrapper{
   background: linear-gradient(180deg, rgba(58,38,22,.92), rgba(43,29,18,.92));
   color: var(--paper);
@@ -331,14 +395,22 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
+
 .leaflet-popup-tip{
   background: rgba(43,29,18,.92);
   border: 1px solid rgba(185,137,69,.20);
 }
+
 .leaflet-popup-content{ margin: 12px 12px; }
 
 .popup-note{ margin-top:6px; opacity:.9; }
-.popup-actions{ margin-top:10px; display:flex; gap:10px; align-items:center; }
+
+.popup-actions{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 
 .popup-btn{
   padding:8px 10px;
@@ -359,13 +431,17 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   background: rgba(0,0,0,.14);
   font-size: 12px;
 }
+
 .popup-remaining{
   margin-top:4px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
 
-/* Header menu (⚙️) */
+/* ==========================================================================
+   Header settings menu (gear + dropdown)
+   ========================================================================== */
+
 .hdr-menu{
   position: relative;
   display:inline-flex;
@@ -388,14 +464,8 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
   user-select:none;
 }
 
-.hdr-icon-btn:hover{
-  border-color: rgba(185,137,69,.65);
-}
+.hdr-icon-btn:hover{ border-color: rgba(185,137,69,.65); }
 
-/* Щоб dropdown завжди був поверх карти */
-header{ z-index: 5000; }
-
-/* Dropdown краще як flex + gap (а не grid-gap без display) */
 .hdr-dropdown{
   position:absolute;
   right:0;
@@ -411,40 +481,16 @@ header{ z-index: 5000; }
   box-shadow: 0 14px 40px rgba(0,0,0,.45);
   z-index: 9999;
 
-  /* ВАЖЛИВО: нічого не показуємо поки hidden */
   display: none;
 }
 
-/* коли hidden прибрали — тоді показуємо */
 .hdr-dropdown:not([hidden]){
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* на всяк випадок: hidden завжди ховає */
-.hdr-dropdown[hidden]{
-  display: none !important;
-}
-
-/* Мобілка: дозволяємо перенос рядків + меню не “зʼїжджає” */
-@media (max-width: 640px){
-  .header-row{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  header .title{ white-space: normal; }
-  header .created{ white-space: normal; }
-
-  .hdr-menu{ margin-left: 0; margin-top: 8px; }
-
-  .hdr-dropdown{
-      left: 0;
-      right: auto;
-  }
-}
-
+.hdr-dropdown[hidden]{ display: none !important; }
 
 .dd-item{
   width:100%;
@@ -463,32 +509,9 @@ header{ z-index: 5000; }
   border-color: rgba(185,137,69,.40);
 }
 
-
-/* мобілка */
-@media (max-width: 640px){
-  .map-shell{ padding: 10px; }
-}
-
-
-
-.marker-bubble{ position:relative; }
-
-.marker-num{
-  position:absolute;
-  top:-8px;
-  right:-8px;
-  padding:2px 5px;
-  border-radius:999px;
-  background: rgba(0,0,0,.75);
-  border: 1px solid rgba(185,137,69,.35);
-  color:#f2e4c9;
-  font-size:10px;
-  font-weight:900;
-  line-height:1;
-  font-variant-numeric: tabular-nums;
-  pointer-events:none;
-}
-
+/* ==========================================================================
+   Points drawer (right-side list)
+   ========================================================================== */
 
 .points-btn{
   position: fixed;
@@ -511,7 +534,7 @@ header{ z-index: 5000; }
 .points-drawer{
   position: fixed;
   right: 14px;
-  top: 72px;                /* під хедером */
+  top: 72px;
   bottom: 14px;
   width: 320px;
   max-width: calc(100vw - 28px);
@@ -526,6 +549,9 @@ header{ z-index: 5000; }
   flex-direction:column;
   gap:10px;
 }
+
+/* Drawer should become flex when opened */
+.points-drawer:not([hidden]){ display:flex; }
 
 .points-head{
   display:flex;
@@ -568,6 +594,8 @@ header{ z-index: 5000; }
   color:#f2e4c9;
   padding: 10px;
   cursor:pointer;
+
+  touch-action: manipulation; /* fast tap without breaking scroll */
 }
 
 .points-item:hover{
@@ -593,19 +621,19 @@ header{ z-index: 5000; }
 .pi-status-ok{ color: #b7f3c2; }
 .pi-status-free{ color: #f2e4c9; opacity:.9; }
 
-@media (max-width: 640px){
-  .points-btn{ right: 10px; }
-  .points-drawer{
-    left: 10px;
-    right: 10px;
-    width: auto;
-    top: 72px;
-    bottom: 10px;
-  }
+/* Touch scrolling improvements for mobile */
+.points-drawer,
+.points-list{
+  touch-action: pan-y;
+}
+.points-list{
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
-
-/* ===== Custom Scrollbar (minimal wood style) ===== */
+/* ==========================================================================
+   Scrollbar (minimal wood style)
+   ========================================================================== */
 
 /* Firefox */
 *{
@@ -637,35 +665,45 @@ header{ z-index: 5000; }
   border-color: rgba(185,137,69,.45);
 }
 
-*::-webkit-scrollbar-thumb:active{
-  background: rgba(185,137,69,.55);
-}
+*::-webkit-scrollbar-thumb:active{ background: rgba(185,137,69,.55); }
 
-*::-webkit-scrollbar-corner{
-  background: transparent;
-}
+*::-webkit-scrollbar-corner{ background: transparent; }
 
-/* Optional: make small scroll areas look cleaner */
+/* Prevent layout shift in scrollable areas */
 .panel, .points-list, #list{
   scrollbar-gutter: stable both-edges;
 }
 
+/* ==========================================================================
+   Responsive tweaks
+   ========================================================================== */
 
-/* Drawer має бути flex коли відкритий */
-.points-drawer:not([hidden]){ display:flex; }
+@media (max-width: 640px){
+  /* Header: allow wrap and keep dropdown aligned */
+  .header-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  header .title{ white-space: normal; }
+  header .created{ white-space: normal; }
 
-/* На мобілці: нормальний вертикальний скрол без “тапів” */
-.points-drawer,
-.points-list{
-  touch-action: pan-y;
-}
+  .hdr-menu{ margin-left: 0; margin-top: 8px; }
 
-.points-list{
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
+  .hdr-dropdown{
+    left: 0;
+    right: auto;
+  }
 
-/* Кнопки в списку: швидкий tap, але без поломки скролу */
-.points-item{
-  touch-action: manipulation;
+  /* Viewer padding */
+  .map-shell{ padding: 10px; }
+
+  /* Drawer layout */
+  .points-btn{ right: 10px; }
+  .points-drawer{
+    left: 10px;
+    right: 10px;
+    width: auto;
+    top: 72px;
+    bottom: 10px;
+  }
 }
