@@ -305,6 +305,66 @@ header .created a:hover{ border-bottom-color: rgba(185,137,69,.8); }
 .hdr-btn:hover{ filter: brightness(1.08); }
 .hdr-btn:active{ transform: translateY(1px); }
 
+
+/* ===== Маркер: звичайний / прикрашений ===== */
+.marker-bubble{
+  width:28px;height:28px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(43,29,18,.85);
+  border:1px solid rgba(185,137,69,.55);
+  box-shadow:0 6px 16px rgba(0,0,0,.35);
+  font-size:16px;
+}
+
+.marker-bubble.decorated{
+  background: rgba(0,0,0,.68);
+  border-color: rgba(185,137,69,.22);
+  opacity: .65;
+  filter: saturate(.6) grayscale(.25);
+}
+
+/* ===== Попап у “дерев’яному” стилі ===== */
+.leaflet-popup-content-wrapper{
+  background: linear-gradient(180deg, rgba(58,38,22,.92), rgba(43,29,18,.92));
+  color: var(--paper);
+  border: 1px solid rgba(185,137,69,.28);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.leaflet-popup-tip{
+  background: rgba(43,29,18,.92);
+  border: 1px solid rgba(185,137,69,.20);
+}
+.leaflet-popup-content{ margin: 12px 12px; }
+
+.popup-note{ margin-top:6px; opacity:.9; }
+.popup-actions{ margin-top:10px; display:flex; gap:10px; align-items:center; }
+
+.popup-btn{
+  padding:8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(185,137,69,.35);
+  background: rgba(0,0,0,.18);
+  color: #f2e4c9;
+  font-weight: 800;
+  cursor: pointer;
+}
+.popup-btn:hover{ filter: brightness(1.08); }
+.popup-btn:active{ transform: translateY(1px); }
+
+.popup-locked{
+  padding:8px 10px;
+  border-radius: 12px;
+  border: 1px dashed rgba(185,137,69,.25);
+  background: rgba(0,0,0,.14);
+  font-size: 12px;
+}
+.popup-remaining{
+  margin-top:4px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
 /* мобілка */
 @media (max-width: 640px){
   .map-shell{ padding: 10px; }
