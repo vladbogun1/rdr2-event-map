@@ -37,15 +37,15 @@
 
     const toggle = () => (menu.hidden ? open() : close());
 
-    // На мобілці краще pointerdown, щоб не було “дивних” кліків + не тягнуло карту
-    btn.addEventListener("pointerdown", (e) => {
+    // На мобілці краще click, щоб не було “дивних” кліків + не тягнуло карту
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggle();
     });
 
     // клік/тап поза меню — закрити
-    document.addEventListener("pointerdown", (e) => {
+    document.addEventListener("click", (e) => {
       if (!wrap.contains(e.target)) close();
     });
 
@@ -55,7 +55,7 @@
     });
 
     if (ddRefresh) {
-      ddRefresh.addEventListener("pointerdown", (e) => {
+      ddRefresh.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         close();
@@ -67,7 +67,7 @@
     }
 
     if (ddReset) {
-      ddReset.addEventListener("pointerdown", (e) => {
+      ddReset.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         close();
@@ -403,25 +403,25 @@
 
     const toggle = () => (drawer.hidden ? open() : close());
 
-    btn.addEventListener("pointerdown", (e) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggle();
     });
 
-    closeBtn?.addEventListener("pointerdown", (e) => {
+    closeBtn?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       close();
     });
 
     // клік поза drawer — закриває
-    document.addEventListener("pointerdown", (e) => {
+    document.addEventListener("click", (e) => {
       if (!drawer.hidden && !drawer.contains(e.target) && e.target !== btn) close();
     });
 
     // кліки по елементах списку
-    drawer.addEventListener("pointerdown", (e) => {
+    drawer.addEventListener("click", (e) => {
       const item = e.target.closest?.("[data-action='focus']");
       if (!item) return;
 

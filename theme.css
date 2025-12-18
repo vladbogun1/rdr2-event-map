@@ -649,3 +649,23 @@ header{ z-index: 5000; }
 .panel, .points-list, #list{
   scrollbar-gutter: stable both-edges;
 }
+
+
+/* Drawer має бути flex коли відкритий */
+.points-drawer:not([hidden]){ display:flex; }
+
+/* На мобілці: нормальний вертикальний скрол без “тапів” */
+.points-drawer,
+.points-list{
+  touch-action: pan-y;
+}
+
+.points-list{
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Кнопки в списку: швидкий tap, але без поломки скролу */
+.points-item{
+  touch-action: manipulation;
+}
