@@ -6,7 +6,25 @@
     <title>ForgeRP Мапа події — ялинки</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script>
+        (async () => {
+          try {
+            const res = await fetch("./version.json?t=" + Date.now(), { cache: "no-store" });
+            const { v } = await res.json();
+            if (!v) return;
+            const links = document.querySelectorAll('link[rel="stylesheet"][href^="./"]');
+            links.forEach(l => {
+              const u = new URL(l.getAttribute("href"), location.href);
+              u.searchParams.set("v", v);
+              l.href = u.toString();
+            });
+            localStorage.setItem("forgerp_asset_version", v);
+          } catch {}
+        })();
+    </script>
+
     <link rel="stylesheet" href="./theme.css">
+
 </head>
 <body class="page">
 <header>
@@ -25,8 +43,32 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="./map-settings.js"></script>
-<script src="./map-zoom.js"></script>
-<script src="./app.js"></script>
+<script>
+    (async () => {
+      const getV = async () => {
+        try {
+          const r = await fetch("./version.json?t=" + Date.now(), { cache: "no-store" });
+          const j = await r.json();
+          return j.v || "1";
+        } catch {
+          return "1";
+        }
+      };
+
+      const v = await getV();
+
+      const load = (src) => new Promise((ok, bad) => {
+        const s = document.createElement("script");
+        s.src = src + (src.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v);
+        s.onload = ok;
+        s.onerror = bad;
+        document.body.appendChild(s);
+      });
+
+      await load("./map-settings.js");
+      await load("./map-zoom.js");
+      await load("./app.js");
+    })();
+</script>
 </body>
 </html>
