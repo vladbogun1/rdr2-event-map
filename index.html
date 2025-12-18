@@ -78,32 +78,29 @@
     </aside>
 </div>
 
+<script src="./assets.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     (async () => {
-      const getV = async () => {
-        try {
-          const r = await fetch("./version.json?t=" + Date.now(), { cache: "no-store" });
-          const j = await r.json();
-          return j.v || "1";
-        } catch {
-          return "1";
-        }
-      };
+      const v = await ForgeRP.Assets.getVersion();
+      ForgeRP.Assets.applyCssVersion(v);
 
-      const v = await getV();
+      await ForgeRP.Assets.loadScripts([
+        "./map-settings.js",
+        "./map-zoom.js",
 
-      const load = (src) => new Promise((ok, bad) => {
-        const s = document.createElement("script");
-        s.src = src + (src.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v);
-        s.onload = ok;
-        s.onerror = bad;
-        document.body.appendChild(s);
-      });
+        "./forgerp/utils.js",
+        "./forgerp/markers.js",
+        "./forgerp/icons.js",
+        "./forgerp/leaflet-layer.js",
+        "./forgerp/decor.js",
+        "./forgerp/popup.js",
+        "./forgerp/popup-countdown.js",
+        "./forgerp/ui-settings-menu.js",
+        "./forgerp/ui-drawer.js",
 
-      await load("./map-settings.js");
-      await load("./map-zoom.js");
-      await load("./app.js");
+        "./app-viewer.js"
+      ], v);
     })();
 </script>
 </body>

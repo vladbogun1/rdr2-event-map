@@ -8,5 +8,10 @@ window.RDR2_MAP_SETTINGS = {
   tileExt: "webp",
   tilesPath: "./tiles",
   markersUrl: "./markers.json",
-  createdBy: "@v_lastelin"
+  createdBy: "@v_lastelin",
+
+  decor: {
+    cookieName: "forgerp_tree_decor_v1",
+    cooldownMs: 24 * 60 * 60 * 1000
+  }
 };
