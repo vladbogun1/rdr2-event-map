@@ -62,6 +62,20 @@
 
 <div class="map-shell">
     <div id="map"></div>
+    <!-- Right-side list button -->
+    <button id="pointsBtn" class="points-btn" type="button" aria-haspopup="dialog" aria-expanded="false" title="Список ялинок">
+        ☰
+    </button>
+
+    <!-- Drawer -->
+    <aside id="pointsDrawer" class="points-drawer" hidden>
+        <div class="points-head">
+            <div class="points-title">Точки</div>
+            <button id="pointsClose" class="points-close" type="button" title="Закрити">✕</button>
+        </div>
+
+        <div id="pointsList" class="points-list"></div>
+    </aside>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
