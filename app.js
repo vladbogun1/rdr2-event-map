@@ -14,8 +14,92 @@
 
   const markersLayer = L.layerGroup().addTo(map);
 
+  setupSettingsMenu();
+
+  function setupSettingsMenu() {
+    const wrap = document.getElementById("settingsWrap");
+    const btn = document.getElementById("settingsBtn");
+    const menu = document.getElementById("settingsMenu");
+    const ddRefresh = document.getElementById("ddRefresh");
+    const ddReset = document.getElementById("ddResetCooldowns");
+
+    if (!wrap || !btn || !menu) return;
+
+    const open = () => {
+      menu.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+    };
+
+    const close = () => {
+      menu.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    };
+
+    const toggle = () => (menu.hidden ? open() : close());
+
+    // На мобілці краще pointerdown, щоб не було “дивних” кліків + не тягнуло карту
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    });
+
+    // клік/тап поза меню — закрити
+    document.addEventListener("pointerdown", (e) => {
+      if (!wrap.contains(e.target)) close();
+    });
+
+    // ESC — закрити
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
+    });
+
+    if (ddRefresh) {
+      ddRefresh.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("v", String(Date.now()));
+        window.location.replace(url.toString());
+      });
+    }
+
+    if (ddReset) {
+      ddReset.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+
+        const ok = confirm("Скинути всі кулдауни ялинок у цьому браузері?");
+        if (!ok) return;
+
+        resetAllCooldowns();
+      });
+    }
+  }
+
+  function resetAllCooldowns() {
+    // очистити Map + таймери
+    for (const id of expireTimers.keys()) clearExpiry(id);
+    decor.clear();
+
+    // видалити cookie повністю
+    deleteCookie(COOKIE_NAME);
+
+    // перемалювати всі маркери (стан стане “звичайний”)
+    for (const m of markers) updateMarkerVisual(m);
+  }
+
+  function deleteCookie(name) {
+    document.cookie = `${name}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Lax`;
+  }
+
   // ----- Decor state (cookies): id -> expiresAtMs -----
   const decor = loadDecorState(); // Map<string, number>
+
+  // таймери завершення (щоб іконки оновлювались навіть коли попап закритий)
   const expireTimers = new Map(); // id -> timeoutId
 
   // ----- markers -----
